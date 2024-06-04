@@ -5,7 +5,7 @@ wecallback
 
 
 ## 软件架构
-```json
+```text
 |-- bin # 二进制文件目录
 |-- cmd # 编译入口
 |   `-- app
