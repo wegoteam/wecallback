@@ -1,4 +1,4 @@
-package active
+package activemq
 
 import (
 	"fmt"
