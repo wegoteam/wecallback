@@ -1,4 +1,4 @@
-package main
+package kafka
 
 // SIGUSR1 toggle the pause/resume consumption
 import (

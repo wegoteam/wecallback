@@ -1,12 +1,13 @@
-package main
+package kafka
 
 import (
 	"fmt"
 	"github.com/IBM/sarama"
 	"log"
+	"testing"
 )
 
-func main() {
+func TestBroker(t *testing.T) {
 	broker := sarama.NewBroker("localhost:9092")
 	err := broker.Open(nil)
 	if err != nil {
@@ -33,6 +34,11 @@ func main() {
 	err = admin.CreateTopic("test-xuch001", &topicDetail, false)
 	if err != nil {
 		log.Println("error in create topic, ", err)
+	}
+
+	err = admin.DeleteTopic("test-xuch001")
+	if err != nil {
+		log.Println("error in delete topic, ", err)
 	}
 
 	topics, err := admin.ListTopics()
