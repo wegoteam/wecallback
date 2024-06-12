@@ -1,13 +1,12 @@
 module github.com/wegoteam/wecallback
 
-go 1.20
+go 1.22
 
 require (
 	github.com/IBM/sarama v1.43.2
 	github.com/apache/rocketmq-client-go/v2 v2.1.2
 	github.com/go-stomp/stomp v2.1.4+incompatible
 	github.com/rabbitmq/amqp091-go v1.10.0
-	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475
 )
 
 require (
@@ -34,6 +33,7 @@ require (
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/pierrec/lz4/v4 v4.1.21 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/rcrowley/go-metrics v0.0.0-20201227073835-cf1acfcdf475 // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/tidwall/gjson v1.17.1 // indirect

@@ -79,7 +79,13 @@
 ```
 
 
-### 支持特性
+### MQ支持列表
+- [ ] Kafka
+- [ ] RabbitMQ
+- [ ] RocketMQ
+- [ ] ActiveMQ
+- [ ] Pulsar
+- [ ] NSQ
 
 
 ## 设计文档
