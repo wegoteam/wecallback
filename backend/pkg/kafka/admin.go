@@ -81,6 +81,12 @@ func getBrokers() map[string][]webroker {
 // @param: address kafka节点地址
 // @return error
 func addBroker(brokerid, id, name, address string) error {
+	if brokerid == "" {
+		return errors.New("broker brokerid is empty")
+	}
+	if address == "" {
+		return errors.New("broker address is empty")
+	}
 	brokerRW.Lock()
 	defer brokerRW.Unlock()
 	brokers, ok := brokerMap[brokerid]
@@ -106,11 +112,11 @@ func addBroker(brokerid, id, name, address string) error {
 // @param: id kafka节点ID
 // @return error
 func delBroker(brokerid, id string) error {
-	brokerRW.Lock()
-	defer brokerRW.Unlock()
 	if brokerid == "" {
 		return errors.New("brokerid is empty")
 	}
+	brokerRW.Lock()
+	defer brokerRW.Unlock()
 	if id == "" {
 		delete(brokerMap, brokerid)
 		return nil
@@ -134,6 +140,60 @@ func getTopics() map[string][]wetopic {
 	return topicMap
 }
 
+// addTopic
+// @Description: 添加topic信息
+// @param: name
+// @param: msgTotal
+// @param: partitions
+// @param: configs
+// @return error
+func addTopic(name string, msgTotal uint64, partitions []wepartition, configs map[string]string) error {
+	if name == "" {
+		return errors.New("broker topic name is empty")
+	}
+	topicRW.Lock()
+	defer topicRW.Unlock()
+	topics, ok := topicMap[name]
+	if ok {
+		slices.DeleteFunc(topics, func(b wetopic) bool {
+			return b.name == name
+		})
+	}
+	topic := wetopic{
+		name:       name,
+		msgTotal:   msgTotal,
+		partitions: partitions,
+		configs:    configs,
+	}
+	topicMap[name] = append(topics, topic)
+	return nil
+}
+
+// delTopic
+// @Description: 删除topic信息
+// @param: brokerid
+// @param: name
+// @return error
+func delTopic(brokerid, name string) error {
+	if brokerid == "" {
+		return errors.New("broker brokerid is empty")
+	}
+	topicRW.Lock()
+	defer topicRW.Unlock()
+	if name == "" {
+		delete(brokerMap, brokerid)
+		return nil
+	}
+	topics, ok := topicMap[brokerid]
+	if ok {
+		slices.DeleteFunc(topics, func(b wetopic) bool {
+			return b.name == name
+		})
+	}
+	topicMap[brokerid] = topics
+	return nil
+}
+
 // getComsumers
 // @Description: 获取消费者信息
 // @return map[string][]wecomsumer
@@ -141,4 +201,60 @@ func getComsumers() map[string][]wecomsumer {
 	comsumerRW.RLock()
 	defer comsumerRW.RUnlock()
 	return comsumerMap
+}
+
+// addComsumer
+// @Description: 添加消费者信息
+// @param: brokerid
+// @param: name
+// @param: active
+// @param: offsets
+// @return error
+func addComsumer(brokerid, name string, active bool, offsets weoffset) error {
+	if brokerid == "" {
+		return errors.New("broker comsumer brokerid is empty")
+	}
+	if name == "" {
+		return errors.New("broker comsumer name is empty")
+	}
+	comsumerRW.Lock()
+	defer comsumerRW.Unlock()
+	comsumers, ok := comsumerMap[brokerid]
+	if ok {
+		slices.DeleteFunc(comsumers, func(c wecomsumer) bool {
+			return c.name == name
+		})
+	}
+	comsumer := wecomsumer{
+		name:    name,
+		active:  active,
+		offsets: offsets,
+	}
+	comsumerMap[brokerid] = append(comsumers, comsumer)
+	return nil
+}
+
+// delComsumer
+// @Description: 删除消费者信息
+// @param: brokerid
+// @param: name
+// @return error
+func delComsumer(brokerid, name string) error {
+	if brokerid == "" {
+		return errors.New("broker comsumer brokerid is empty")
+	}
+	if name == "" {
+		delete(comsumerMap, brokerid)
+		return nil
+	}
+	comsumerRW.Lock()
+	defer comsumerRW.Unlock()
+	comsumers, ok := comsumerMap[brokerid]
+	if ok {
+		slices.DeleteFunc(comsumers, func(c wecomsumer) bool {
+			return c.name == name
+		})
+	}
+	comsumerMap[brokerid] = comsumers
+	return nil
 }
