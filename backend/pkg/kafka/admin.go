@@ -47,9 +47,9 @@ type wepartition struct {
 // wecomsumer
 // @Description: kafka 消费者
 type wecomsumer struct {
-	name    string   // 消费者名称
-	active  bool     // 消费者是否在线
-	offsets weoffset //偏移量
+	name    string     // 消费者名称
+	active  bool       // 消费者是否在线
+	offsets []weoffset //偏移量
 }
 
 // weoffset
@@ -210,7 +210,7 @@ func getComsumers() map[string][]wecomsumer {
 // @param: active
 // @param: offsets
 // @return error
-func addComsumer(brokerid, name string, active bool, offsets weoffset) error {
+func addComsumer(brokerid, name string, active bool, offsets []weoffset) error {
 	if brokerid == "" {
 		return errors.New("broker comsumer brokerid is empty")
 	}
