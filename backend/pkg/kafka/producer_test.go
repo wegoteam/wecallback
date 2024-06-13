@@ -2,7 +2,6 @@ package kafka
 
 import (
 	"fmt"
-	"log"
 	"testing"
 
 	"github.com/IBM/sarama"
@@ -18,30 +17,35 @@ func TestProducer(t *testing.T) {
 	config.Producer.RequiredAcks = sarama.WaitForAll
 	// 设置分区器，这里使用随机分区器
 	config.Producer.Partitioner = sarama.NewRandomPartitioner
+	//config.Producer.Partitioner = sarama.NewManualPartitioner
+	//config.Producer.Partitioner = sarama.NewReferenceHashPartitioner
+	//config.Producer.Partitioner = sarama.NewHashPartitioner
+	//config.Producer.Partitioner = sarama.NewRoundRobinPartitioner
 	// 设置消息成功发送时返回
 	config.Producer.Return.Successes = true
 
 	// 使用broker地址和配置创建一个同步Producer
 	producer, err := sarama.NewSyncProducer(brokerList, config)
 	if err != nil {
-		log.Fatalf("Failed to create producer: %v", err)
+		fmt.Printf("Failed to create producer: %v\n", err)
 	}
 	defer func() {
 		if err := producer.Close(); err != nil {
-			log.Fatalf("Failed to close producer: %v", err)
+			fmt.Printf("Failed to close producer: %v", err)
 		}
 	}()
 
 	// 要发送的消息
 	message := &sarama.ProducerMessage{
 		Topic: "test_xuch2",
+		Key:   sarama.StringEncoder("test_key"),
 		Value: sarama.StringEncoder("test message"),
 	}
 
 	// 发送消息
 	partition, offset, err := producer.SendMessage(message)
 	if err != nil {
-		log.Fatalf("Failed to send message: %v", err)
+		fmt.Printf("Failed to send message: %v", err)
 	}
 
 	// 打印消息发送详情

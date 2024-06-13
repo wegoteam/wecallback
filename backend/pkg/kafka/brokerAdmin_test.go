@@ -3,7 +3,6 @@ package kafka
 import (
 	"fmt"
 	"github.com/IBM/sarama"
-	"log"
 	"testing"
 )
 
@@ -11,7 +10,7 @@ func TestBroker(t *testing.T) {
 	broker := sarama.NewBroker("localhost:9092")
 	err := broker.Open(nil)
 	if err != nil {
-		log.Println("error in open the broker, ", err)
+		fmt.Printf("error in open the broker, %v\n", err)
 	}
 
 	broker.Close()
@@ -28,35 +27,35 @@ func TestBroker(t *testing.T) {
 
 	admin, err := sarama.NewClusterAdmin([]string{"localhost:9092"}, config)
 	if err != nil {
-		log.Fatal("error in create new cluster ... ", err)
+		fmt.Printf("error in create new cluster ... %v\n", err)
 	}
 
 	err = admin.CreateTopic("test-xuch001", &topicDetail, false)
 	if err != nil {
-		log.Println("error in create topic, ", err)
+		fmt.Printf("error in create topic, %v\n", err)
 	}
 
 	err = admin.DeleteTopic("test-xuch001")
 	if err != nil {
-		log.Println("error in delete topic, ", err)
+		fmt.Printf("error in delete topic, %v\n", err)
 	}
 
 	topics, err := admin.ListTopics()
 	if err != nil {
-		log.Println("error in list topics, ", err)
+		fmt.Printf("error in list topics,%v\n ", err)
 	}
 	for topicName, detail := range topics {
-		log.Println("topic name: %v ,detail=%v\n", topicName, detail)
+		fmt.Printf("topic name: %v ,detail=%v\n", topicName, detail)
 	}
 
 	consumerGroups, err := admin.ListConsumerGroups()
 	for consumerGroupName, consumerGroup := range consumerGroups {
-		fmt.Println("consumerGroupName: %v ,consumerGroup=%v\n", consumerGroupName, consumerGroup)
+		fmt.Printf("consumerGroupName: %v ,consumerGroup=%v\n", consumerGroupName, consumerGroup)
 	}
 
 	err = admin.Close()
 	if err != nil {
-		log.Fatal("error in close admin, ", err)
+		fmt.Printf("error in close admin,%v\n ", err)
 	}
 
 }

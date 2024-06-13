@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/IBM/sarama"
-	"log"
 	"os"
 	"os/signal"
 	"strings"
@@ -133,10 +132,10 @@ func (consumer *TestConsumer) ConsumeClaim(session sarama.ConsumerGroupSession, 
 func toggleConsumptionFlow(client sarama.ConsumerGroup, isPaused *bool) {
 	if *isPaused {
 		client.ResumeAll()
-		log.Println("Resuming consumption")
+		fmt.Printf("Resuming consumption")
 	} else {
 		client.PauseAll()
-		log.Println("Pausing consumption")
+		fmt.Printf("Pausing consumption")
 	}
 
 	*isPaused = !*isPaused
