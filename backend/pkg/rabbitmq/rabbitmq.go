@@ -6,8 +6,6 @@ import (
 	"log"
 )
 
-const MQURL = "amqp://rabbit:rabbit@127.0.0.1:5672/"
-
 type RabbitMQ struct {
 	//连接
 	conn *amqp.Connection
@@ -18,14 +16,14 @@ type RabbitMQ struct {
 	//交换机
 	Exchange string
 	//key Simple模式 几乎用不到
-	Key string
+	RoutingKey string
 	//连接信息
 	Mqurl string
 }
 
 // NewRabbitMQ 创建RabbitMQ结构体实例
-func NewRabbitMQ(queuename string, exchange string, key string) (*RabbitMQ, error) {
-	rabbitmq := &RabbitMQ{QueueName: queuename, Exchange: exchange, Key: key, Mqurl: MQURL}
+func NewRabbitMQ(mqurl, queueName, exchange, routingKey string) (*RabbitMQ, error) {
+	rabbitmq := &RabbitMQ{QueueName: queueName, Exchange: exchange, RoutingKey: routingKey, Mqurl: mqurl}
 	var err error
 	//创建rabbitmq连接
 	rabbitmq.conn, err = amqp.Dial(rabbitmq.Mqurl)
@@ -40,8 +38,8 @@ func NewRabbitMQ(queuename string, exchange string, key string) (*RabbitMQ, erro
 	return rabbitmq, nil
 }
 
-// Destory 断开channel和connection
-func (r *RabbitMQ) Destory() {
+// Close 断开channel和connection
+func (r *RabbitMQ) Close() {
 	err := r.channel.Close()
 	if err != nil {
 		fmt.Printf("Failed to close channel:%v", err)
@@ -53,8 +51,8 @@ func (r *RabbitMQ) Destory() {
 }
 
 // NewRabbitMQSimple 简单模式step：1。创建简单模式下RabbitMQ实例
-func NewRabbitMQSimple(queueName string) (*RabbitMQ, error) {
-	return NewRabbitMQ(queueName, "", "")
+func NewRabbitMQSimple(mqurl, queueName string) (*RabbitMQ, error) {
+	return NewRabbitMQ(mqurl, queueName, "", "")
 }
 
 // 简单模式Step:2、简单模式下生产代码
@@ -173,9 +171,9 @@ func (r *RabbitMQ) ConsumeSimple() {
 }
 
 // 订阅模式创建rabbitmq实例
-func NewRabbitMQPubSub(exchangeName string) (*RabbitMQ, error) {
+func NewRabbitMQPubSub(mqurl, exchangeName string) (*RabbitMQ, error) {
 	//创建rabbitmq实例
-	return NewRabbitMQ("", exchangeName, "")
+	return NewRabbitMQ(mqurl, exchangeName, "", "")
 }
 
 // 订阅模式生成
@@ -304,8 +302,8 @@ func (r *RabbitMQ) RecieveSub() {
 }
 
 // 话题模式 创建RabbitMQ实例
-func NewRabbitMQTopic(exchagne string, routingKey string) (*RabbitMQ, error) {
-	return NewRabbitMQ("", exchagne, routingKey)
+func NewRabbitMQTopic(mqurl, exchagne string, routingKey string) (*RabbitMQ, error) {
+	return NewRabbitMQ(mqurl, "", exchagne, routingKey)
 }
 
 // 话题模式发送信息
@@ -334,7 +332,7 @@ func (r *RabbitMQ) PublishTopic(message string) {
 	err = r.channel.Publish(
 		r.Exchange,
 		//要设置
-		r.Key,
+		r.RoutingKey,
 		false,
 		false,
 		amqp.Publishing{
@@ -391,7 +389,7 @@ func (r *RabbitMQ) RecieveTopic() {
 	err = r.channel.QueueBind(
 		q.Name,
 		//在pub/sub模式下，这里的key要为空
-		r.Key,
+		r.RoutingKey,
 		r.Exchange,
 		false,
 		nil,
@@ -430,9 +428,9 @@ func (r *RabbitMQ) RecieveTopic() {
 }
 
 // 路由模式 创建RabbitMQ实例
-func NewRabbitMQRouting(exchagne string, routingKey string) (*RabbitMQ, error) {
+func NewRabbitMQRouting(mqurl, exchagne string, routingKey string) (*RabbitMQ, error) {
 	//创建rabbitmq实例
-	return NewRabbitMQ("", exchagne, routingKey)
+	return NewRabbitMQ(mqurl, "", exchagne, routingKey)
 }
 
 // 路由模式发送信息
@@ -460,7 +458,7 @@ func (r *RabbitMQ) PublishRouting(message string) {
 	err = r.channel.Publish(
 		r.Exchange,
 		//要设置
-		r.Key,
+		r.RoutingKey,
 		false,
 		false,
 		amqp.Publishing{
@@ -512,7 +510,7 @@ func (r *RabbitMQ) RecieveRouting() {
 	err = r.channel.QueueBind(
 		q.Name,
 		//在pub/sub模式下，这里的key要为空
-		r.Key,
+		r.RoutingKey,
 		r.Exchange,
 		false,
 		nil,
