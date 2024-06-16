@@ -14,7 +14,7 @@ type kafkaBroker struct {
 	brokerMap    map[string]*sarama.Broker
 }
 
-func NewKafkaAdmin(addrs []string, config *sarama.Config) (kafkaBroker, error) {
+func NewKafkaAdmin(addrs []string, config *sarama.Config) (*kafkaBroker, error) {
 
 	if config == nil {
 		config = sarama.NewConfig()
@@ -39,8 +39,9 @@ func NewKafkaAdmin(addrs []string, config *sarama.Config) (kafkaBroker, error) {
 	clusterAdmin, err := sarama.NewClusterAdmin(addrs, config)
 	if err != nil {
 		fmt.Printf("error in create new cluster ... %v\n", err)
+		return nil, err
 	}
-	kafkaBroker := kafkaBroker{
+	kafkaBroker := &kafkaBroker{
 		addrs:        addrs,
 		config:       *config,
 		brokerMap:    brokerMap,
@@ -52,11 +53,17 @@ func NewKafkaAdmin(addrs []string, config *sarama.Config) (kafkaBroker, error) {
 
 func (b *kafkaBroker) Close() {
 	if b.clusterAdmin != nil {
-		b.clusterAdmin.Close()
+		err := b.clusterAdmin.Close()
+		if err != nil {
+			fmt.Printf("error in close the cluster admin, %v\n", err)
+		}
 	}
 
 	for _, broker := range b.brokerMap {
-		broker.Close()
+		err := broker.Close()
+		if err != nil {
+			fmt.Printf("error in close the broker, %v\n", err)
+		}
 	}
 }
 
