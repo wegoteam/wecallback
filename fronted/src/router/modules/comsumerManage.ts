@@ -1,7 +1,7 @@
 import { $t } from "@/plugins/i18n";
 
 export default {
-  path: "/comsumerManage",
+  path: "/comsumer",
   redirect: "/comsumerManage",
   meta: {
     icon: "majesticons:atom-2-line",
