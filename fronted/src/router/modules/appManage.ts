@@ -1,7 +1,7 @@
 import { $t } from "@/plugins/i18n";
 
 export default {
-  path: "/app",
+  path: "/appManage",
   redirect: "/appManage",
   meta: {
     icon: "ant-design:database-outlined",

@@ -1,7 +1,7 @@
 import { $t } from "@/plugins/i18n";
 
 export default {
-  path: "/queue",
+  path: "/queueManage",
   redirect: "/queueManage",
   meta: {
     icon: "majesticons:box-line",

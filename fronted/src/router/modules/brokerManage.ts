@@ -1,7 +1,7 @@
 import { $t } from "@/plugins/i18n";
 
 export default {
-  path: "/broker",
+  path: "/brokerManage",
   redirect: "/brokerManage",
   meta: {
     icon: "ant-design:cluster-outlined",
