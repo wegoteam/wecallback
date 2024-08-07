@@ -10,7 +10,7 @@ const brokerManage: AppRouteModule = {
   redirect: '/broker/brokerManage',
   meta: {
     orderNo: 2,
-    icon: 'ion:grid-outline',
+    icon: 'ant-design:apartment-outlined',
     title: t('routes.manage.broker.brokerManage'),
   },
   children: [

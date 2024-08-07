@@ -10,7 +10,7 @@ const comsumerManage: AppRouteModule = {
   redirect: '/comsumer/comsumerManage',
   meta: {
     orderNo: 2,
-    icon: 'ion:grid-outline',
+    icon: 'ant-design:bars-outlined',
     title: t('routes.manage.comsumer.comsumerManage'),
   },
   children: [

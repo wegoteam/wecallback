@@ -10,7 +10,7 @@ const queueManage: AppRouteModule = {
   redirect: '/queue/queueManage',
   meta: {
     orderNo: 3,
-    icon: 'ion:grid-outline',
+    icon: 'ant-design:branches-outlined',
     title: t('routes.manage.queue.queueManage'),
   },
   children: [

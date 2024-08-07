@@ -10,7 +10,7 @@ const appManage: AppRouteModule = {
   redirect: '/app/appManage',
   meta: {
     orderNo: 4,
-    icon: 'ion:grid-outline',
+    icon: 'ant-design:appstore-twotone',
     title: t('routes.manage.app.appManage'),
   },
   children: [
