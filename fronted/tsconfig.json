@@ -1,53 +1,44 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
-    "strict": false,
-    "jsx": "preserve",
-    "importHelpers": true,
-    "experimentalDecorators": true,
-    "strictFunctionTypes": false,
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "isolatedModules": true,
-    "allowSyntheticDefaultImports": true,
+    "target": "esnext",
+    "module": "esnext",
+    "moduleResolution": "node",
+    "strict": true,
+    "noLib": false,
     "forceConsistentCasingInFileNames": true,
-    "sourceMap": true,
+    "allowSyntheticDefaultImports": true,
+    "strictFunctionTypes": false,
+    "jsx": "preserve",
     "baseUrl": ".",
-    "allowJs": false,
+    "allowJs": true,
+    "sourceMap": true,
+    "esModuleInterop": true,
     "resolveJsonModule": true,
-    "lib": [
-      "ESNext",
-      "DOM"
-    ],
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "experimentalDecorators": true,
+    "lib": ["dom", "esnext"],
+    "noImplicitAny": false,
+    "skipLibCheck": true,
+    "types": ["vite/client"],
+    "removeComments": true,
     "paths": {
-      "@/*": [
-        "src/*"
-      ],
-      "@build/*": [
-        "build/*"
-      ]
-    },
-    "types": [
-      "node",
-      "vite/client",
-      "element-plus/global",
-      "@pureadmin/table/volar",
-      "@pureadmin/descriptions/volar"
-    ]
+      "/@/*": ["src/*"],
+      "/#/*": ["types/*"]
+    }
   },
   "include": [
-    "mock/*.ts",
+    "tests/**/*.ts",
     "src/**/*.ts",
+    "src/**/*.d.ts",
     "src/**/*.tsx",
     "src/**/*.vue",
-    "types/*.d.ts",
+    "types/**/*.d.ts",
+    "types/**/*.ts",
+    "build/**/*.ts",
+    "build/**/*.d.ts",
+    "mock/**/*.ts",
     "vite.config.ts"
   ],
-  "exclude": [
-    "dist",
-    "**/*.js",
-    "node_modules"
-  ]
+  "exclude": ["node_modules", "tests/server/**/*.ts", "dist", "**/*.js"]
 }

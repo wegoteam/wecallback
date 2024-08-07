@@ -1,229 +1,191 @@
-import "./index.scss";
-import { isObject } from "@pureadmin/utils";
-import type { Directive, DirectiveBinding } from "vue";
-
+import type { Directive } from 'vue';
+import './index.less';
 export interface RippleOptions {
-  /** 自定义`ripple`颜色，支持`tailwindcss` */
-  class?: string;
-  /** 是否从中心扩散 */
-  center?: boolean;
-  circle?: boolean;
+  event: string;
+  transition: number;
 }
 
-export interface RippleDirectiveBinding
-  extends Omit<DirectiveBinding, "modifiers" | "value"> {
-  value?: boolean | { class: string };
-  modifiers: {
-    center?: boolean;
-    circle?: boolean;
+export interface RippleProto {
+  background?: string;
+  zIndex?: string;
+}
+
+export type EventType = Event & MouseEvent & TouchEvent;
+
+const options: RippleOptions = {
+  event: 'mousedown',
+  transition: 400,
+};
+
+const RippleDirective: Directive & RippleProto = {
+  beforeMount: (el: HTMLElement, binding) => {
+    if (binding.value === false) return;
+
+    const bg = el.getAttribute('ripple-background');
+    setProps(Object.keys(binding.modifiers), options);
+
+    const background = bg || RippleDirective.background;
+    const zIndex = RippleDirective.zIndex;
+
+    el.addEventListener(options.event, (event: EventType) => {
+      rippler({
+        event,
+        el,
+        background,
+        zIndex,
+      });
+    });
+  },
+  updated(el, binding) {
+    if (!binding.value) {
+      el?.clearRipple?.();
+      return;
+    }
+    const bg = el.getAttribute('ripple-background');
+    el?.setBackground?.(bg);
+  },
+};
+
+function rippler({
+  event,
+  el,
+  zIndex,
+  background,
+}: { event: EventType; el: HTMLElement } & RippleProto) {
+  const targetBorder = parseInt(getComputedStyle(el).borderWidth.replace('px', ''));
+  const clientX = event.clientX || event.touches[0].clientX;
+  const clientY = event.clientY || event.touches[0].clientY;
+
+  const rect = el.getBoundingClientRect();
+  const { left, top } = rect;
+  const { offsetWidth: width, offsetHeight: height } = el;
+  const { transition } = options;
+  const dx = clientX - left;
+  const dy = clientY - top;
+  const maxX = Math.max(dx, width - dx);
+  const maxY = Math.max(dy, height - dy);
+  const style = window.getComputedStyle(el);
+  const radius = Math.sqrt(maxX * maxX + maxY * maxY);
+  const border = targetBorder > 0 ? targetBorder : 0;
+
+  const ripple = document.createElement('div');
+  const rippleContainer = document.createElement('div');
+
+  // Styles for ripple
+  ripple.className = 'ripple';
+
+  Object.assign(ripple.style ?? {}, {
+    marginTop: '0px',
+    marginLeft: '0px',
+    width: '1px',
+    height: '1px',
+    transition: `all ${transition}ms cubic-bezier(0.4, 0, 0.2, 1)`,
+    borderRadius: '50%',
+    pointerEvents: 'none',
+    position: 'relative',
+    zIndex: zIndex ?? '9999',
+    backgroundColor: background ?? 'rgba(0, 0, 0, 0.12)',
+  });
+
+  // Styles for rippleContainer
+  rippleContainer.className = 'ripple-container';
+  Object.assign(rippleContainer.style ?? {}, {
+    position: 'absolute',
+    left: `${0 - border}px`,
+    top: `${0 - border}px`,
+    height: '0',
+    width: '0',
+    pointerEvents: 'none',
+    overflow: 'hidden',
+  });
+
+  const storedTargetPosition =
+    el.style.position.length > 0 ? el.style.position : getComputedStyle(el).position;
+
+  if (storedTargetPosition !== 'relative') {
+    el.style.position = 'relative';
+  }
+
+  rippleContainer.appendChild(ripple);
+  el.appendChild(rippleContainer);
+
+  Object.assign(ripple.style, {
+    marginTop: `${dy}px`,
+    marginLeft: `${dx}px`,
+  });
+
+  const {
+    borderTopLeftRadius,
+    borderTopRightRadius,
+    borderBottomLeftRadius,
+    borderBottomRightRadius,
+  } = style;
+  Object.assign(rippleContainer.style, {
+    width: `${width}px`,
+    height: `${height}px`,
+    direction: 'ltr',
+    borderTopLeftRadius,
+    borderTopRightRadius,
+    borderBottomLeftRadius,
+    borderBottomRightRadius,
+  });
+
+  setTimeout(() => {
+    const wh = `${radius * 2}px`;
+    Object.assign(ripple.style ?? {}, {
+      width: wh,
+      height: wh,
+      marginLeft: `${dx - radius}px`,
+      marginTop: `${dy - radius}px`,
+    });
+  }, 0);
+
+  function clearRipple() {
+    setTimeout(() => {
+      ripple.style.backgroundColor = 'rgba(0, 0, 0, 0)';
+    }, 250);
+
+    setTimeout(() => {
+      rippleContainer?.parentNode?.removeChild(rippleContainer);
+    }, 850);
+    el.removeEventListener('mouseup', clearRipple, false);
+    el.removeEventListener('mouseleave', clearRipple, false);
+    el.removeEventListener('dragstart', clearRipple, false);
+    setTimeout(() => {
+      let clearPosition = true;
+      for (let i = 0; i < el.childNodes.length; i++) {
+        if ((el.childNodes[i] as Recordable).className === 'ripple-container') {
+          clearPosition = false;
+        }
+      }
+
+      if (clearPosition) {
+        el.style.position = storedTargetPosition !== 'static' ? storedTargetPosition : '';
+      }
+    }, options.transition + 260);
+  }
+
+  if (event.type === 'mousedown') {
+    el.addEventListener('mouseup', clearRipple, false);
+    el.addEventListener('mouseleave', clearRipple, false);
+    el.addEventListener('dragstart', clearRipple, false);
+  } else {
+    clearRipple();
+  }
+
+  (el as Recordable).setBackground = (bgColor: string) => {
+    if (!bgColor) {
+      return;
+    }
+    ripple.style.backgroundColor = bgColor;
   };
 }
 
-function transform(el: HTMLElement, value: string) {
-  el.style.transform = value;
-  el.style.webkitTransform = value;
-}
-
-const calculate = (
-  e: PointerEvent,
-  el: HTMLElement,
-  value: RippleOptions = {}
-) => {
-  const offset = el.getBoundingClientRect();
-
-  // 获取点击位置距离 el 的垂直和水平距离
-  let localX = e.clientX - offset.left;
-  let localY = e.clientY - offset.top;
-
-  let radius = 0;
-  let scale = 0.3;
-  // 计算点击位置到 el 顶点最远距离，即为圆的最大半径（勾股定理）
-  if (el._ripple?.circle) {
-    scale = 0.15;
-    radius = el.clientWidth / 2;
-    radius = value.center
-      ? radius
-      : radius + Math.sqrt((localX - radius) ** 2 + (localY - radius) ** 2) / 4;
-  } else {
-    radius = Math.sqrt(el.clientWidth ** 2 + el.clientHeight ** 2) / 2;
-  }
-
-  // 中心点坐标
-  const centerX = `${(el.clientWidth - radius * 2) / 2}px`;
-  const centerY = `${(el.clientHeight - radius * 2) / 2}px`;
-
-  // 点击位置坐标
-  const x = value.center ? centerX : `${localX - radius}px`;
-  const y = value.center ? centerY : `${localY - radius}px`;
-
-  return { radius, scale, x, y, centerX, centerY };
-};
-
-const ripples = {
-  show(e: PointerEvent, el: HTMLElement, value: RippleOptions = {}) {
-    if (!el?._ripple?.enabled) {
-      return;
-    }
-
-    // 创建 ripple 元素和 ripple 父元素
-    const container = document.createElement("span");
-    const animation = document.createElement("span");
-
-    container.appendChild(animation);
-    container.className = "v-ripple__container";
-
-    if (value.class) {
-      container.className += ` ${value.class}`;
-    }
-
-    const { radius, scale, x, y, centerX, centerY } = calculate(e, el, value);
-
-    // ripple 圆大小
-    const size = `${radius * 2}px`;
-
-    animation.className = "v-ripple__animation";
-    animation.style.width = size;
-    animation.style.height = size;
-
-    el.appendChild(container);
-
-    // 获取目标元素样式表
-    const computed = window.getComputedStyle(el);
-    // 防止 position 被覆盖导致 ripple 位置有问题
-    if (computed && computed.position === "static") {
-      el.style.position = "relative";
-      el.dataset.previousPosition = "static";
-    }
-
-    animation.classList.add("v-ripple__animation--enter");
-    animation.classList.add("v-ripple__animation--visible");
-    transform(
-      animation,
-      `translate(${x}, ${y}) scale3d(${scale},${scale},${scale})`
-    );
-    animation.dataset.activated = String(performance.now());
-
-    setTimeout(() => {
-      animation.classList.remove("v-ripple__animation--enter");
-      animation.classList.add("v-ripple__animation--in");
-      transform(animation, `translate(${centerX}, ${centerY}) scale3d(1,1,1)`);
-    }, 0);
-  },
-
-  hide(el: HTMLElement | null) {
-    if (!el?._ripple?.enabled) return;
-
-    const ripples = el.getElementsByClassName("v-ripple__animation");
-
-    if (ripples.length === 0) return;
-    const animation = ripples[ripples.length - 1] as HTMLElement;
-
-    if (animation.dataset.isHiding) return;
-    else animation.dataset.isHiding = "true";
-
-    const diff = performance.now() - Number(animation.dataset.activated);
-    const delay = Math.max(250 - diff, 0);
-
-    setTimeout(() => {
-      animation.classList.remove("v-ripple__animation--in");
-      animation.classList.add("v-ripple__animation--out");
-
-      setTimeout(() => {
-        const ripples = el.getElementsByClassName("v-ripple__animation");
-        if (ripples.length === 1 && el.dataset.previousPosition) {
-          el.style.position = el.dataset.previousPosition;
-          delete el.dataset.previousPosition;
-        }
-
-        if (animation.parentNode?.parentNode === el)
-          el.removeChild(animation.parentNode);
-      }, 300);
-    }, delay);
-  }
-};
-
-function isRippleEnabled(value: any): value is true {
-  return typeof value === "undefined" || !!value;
-}
-
-function rippleShow(e: PointerEvent) {
-  const value: RippleOptions = {};
-  const element = e.currentTarget as HTMLElement | undefined;
-
-  if (!element?._ripple || element._ripple.touched) return;
-
-  value.center = element._ripple.centered;
-  if (element._ripple.class) {
-    value.class = element._ripple.class;
-  }
-
-  ripples.show(e, element, value);
-}
-
-function rippleHide(e: Event) {
-  const element = e.currentTarget as HTMLElement | null;
-  if (!element?._ripple) return;
-
-  window.setTimeout(() => {
-    if (element._ripple) {
-      element._ripple.touched = false;
-    }
+function setProps(modifiers: Recordable, props: Recordable) {
+  modifiers.forEach((item: Recordable) => {
+    if (isNaN(Number(item))) props.event = item;
+    else props.transition = item;
   });
-  ripples.hide(element);
 }
 
-function updateRipple(
-  el: HTMLElement,
-  binding: RippleDirectiveBinding,
-  wasEnabled: boolean
-) {
-  const { value, modifiers } = binding;
-  const enabled = isRippleEnabled(value);
-  if (!enabled) {
-    ripples.hide(el);
-  }
-
-  el._ripple = el._ripple ?? {};
-  el._ripple.enabled = enabled;
-  el._ripple.centered = modifiers.center;
-  el._ripple.circle = modifiers.circle;
-  if (isObject(value) && value.class) {
-    el._ripple.class = value.class;
-  }
-
-  if (enabled && !wasEnabled) {
-    el.addEventListener("pointerdown", rippleShow);
-    el.addEventListener("pointerup", rippleHide);
-  } else if (!enabled && wasEnabled) {
-    removeListeners(el);
-  }
-}
-
-function removeListeners(el: HTMLElement) {
-  el.removeEventListener("pointerdown", rippleShow);
-  el.removeEventListener("pointerup", rippleHide);
-}
-
-function mounted(el: HTMLElement, binding: RippleDirectiveBinding) {
-  updateRipple(el, binding, false);
-}
-
-function unmounted(el: HTMLElement) {
-  delete el._ripple;
-  removeListeners(el);
-}
-
-function updated(el: HTMLElement, binding: RippleDirectiveBinding) {
-  if (binding.value === binding.oldValue) {
-    return;
-  }
-
-  const wasEnabled = isRippleEnabled(binding.oldValue);
-  updateRipple(el, binding, wasEnabled);
-}
-
-export const Ripple: Directive = {
-  mounted,
-  unmounted,
-  updated
-};
+export default RippleDirective;

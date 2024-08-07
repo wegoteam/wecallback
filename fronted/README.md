@@ -1,17 +1,26 @@
 
-vue-pure-admin
+## 模板
+Vue3.0、Vite、 Ant-Design-Vue 、TypeScript
 
-```shell
-npm install -g pnpm
+vben-admin v2.9.0
 
+## 安装使用
+
+- 安装依赖
+
+```bash
 pnpm install
-pnpm dev
-pnpm build
-
-pnpm add 包名
-pnpm remove 包名
 ```
 
-icon:
+- 运行
 
-https://icones.js.org/collection/carbon
+```bash
+pnpm serve
+```
+
+- 打包
+
+```bash
+pnpm build
+```
+

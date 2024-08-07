@@ -1,27 +1,21 @@
 <template>
-  <el-config-provider :locale="currentLocale">
-    <router-view />
-    <ReDialog />
-  </el-config-provider>
+  <ConfigProvider :locale="getAntdLocale">
+    <AppProvider>
+      <RouterView />
+    </AppProvider>
+  </ConfigProvider>
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue";
-import { ElConfigProvider } from "element-plus";
-import { ReDialog } from "@/components/ReDialog";
-import en from "element-plus/es/locale/lang/en";
-import zhCn from "element-plus/es/locale/lang/zh-cn";
+<script lang="ts" setup>
+  import { ConfigProvider } from 'ant-design-vue';
+  import { AppProvider } from '/@/components/Application';
+  import { useTitle } from '/@/hooks/web/useTitle';
+  import { useLocale } from '/@/locales/useLocale';
 
-export default defineComponent({
-  name: "app",
-  components: {
-    [ElConfigProvider.name]: ElConfigProvider,
-    ReDialog
-  },
-  computed: {
-    currentLocale() {
-      return this.$storage.locale?.locale === "zh" ? zhCn : en;
-    }
-  }
-});
+  import 'dayjs/locale/zh-cn';
+  // support Multi-language
+  const { getAntdLocale } = useLocale();
+
+  // Listening to page changes and dynamically changing site titles
+  useTitle();
 </script>

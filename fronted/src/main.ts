@@ -1,63 +1,68 @@
-import App from "./App.vue";
-import router from "./router";
-import { setupStore } from "@/store";
-import { useI18n } from "@/plugins/i18n";
-import { getPlatformConfig } from "./config";
-import { MotionPlugin } from "@vueuse/motion";
-// import { useEcharts } from "@/plugins/echarts";
-import { createApp, type Directive } from "vue";
-import { useElementPlus } from "@/plugins/elementPlus";
-import { injectResponsiveStorage } from "@/utils/responsive";
+import 'virtual:windi-base.css';
+import 'virtual:windi-components.css';
+import '/@/design/index.less';
+import '/@/components/VxeTable/src/css/index.scss';
+import 'virtual:windi-utilities.css';
+// Register icon sprite
+import 'virtual:svg-icons-register';
+import App from './App.vue';
+import { createApp } from 'vue';
+import { initAppConfigStore } from '/@/logics/initAppConfig';
+import { setupErrorHandle } from '/@/logics/error-handle';
+import { router, setupRouter } from '/@/router';
+import { setupRouterGuard } from '/@/router/guard';
+import { setupStore } from '/@/store';
+import { setupGlobDirectives } from '/@/directives';
+import { setupI18n } from '/@/locales/setupI18n';
+import { registerGlobComp } from '/@/components/registerGlobComp';
 
-import Table from "@pureadmin/table";
-// import PureDescriptions from "@pureadmin/descriptions";
+import { isDevMode } from './utils/env';
 
-// 引入重置样式
-import "./style/reset.scss";
-// 导入公共样式
-import "./style/index.scss";
-// 一定要在main.ts中导入tailwind.css，防止vite每次hmr都会请求src/style/index.scss整体css文件导致热更新慢的问题
-import "./style/tailwind.css";
-import "element-plus/dist/index.css";
-// 导入字体图标
-import "./assets/iconfont/iconfont.js";
-import "./assets/iconfont/iconfont.css";
+if (isDevMode()) {
+  import('ant-design-vue/es/style');
+}
 
-const app = createApp(App);
+async function bootstrap() {
+  const app = createApp(App);
 
-// 自定义指令
-import * as directives from "@/directives";
-Object.keys(directives).forEach(key => {
-  app.directive(key, (directives as { [key: string]: Directive })[key]);
-});
-
-// 全局注册@iconify/vue图标库
-import {
-  IconifyIconOffline,
-  IconifyIconOnline,
-  FontIcon
-} from "./components/ReIcon";
-app.component("IconifyIconOffline", IconifyIconOffline);
-app.component("IconifyIconOnline", IconifyIconOnline);
-app.component("FontIcon", FontIcon);
-
-// 全局注册按钮级别权限组件
-import { Auth } from "@/components/ReAuth";
-app.component("Auth", Auth);
-
-// 全局注册vue-tippy
-import "tippy.js/dist/tippy.css";
-import "tippy.js/themes/light.css";
-import VueTippy from "vue-tippy";
-app.use(VueTippy);
-
-getPlatformConfig(app).then(async config => {
+  // Configure store
+  // 配置 store
   setupStore(app);
-  app.use(router);
-  await router.isReady();
-  injectResponsiveStorage(app, config);
-  app.use(MotionPlugin).use(useI18n).use(useElementPlus).use(Table);
-  // .use(PureDescriptions)
-  // .use(useEcharts);
-  app.mount("#app");
-});
+
+  // Initialize internal system configuration
+  // 初始化内部系统配置
+  initAppConfigStore();
+
+  // Register global components
+  // 注册全局组件
+  registerGlobComp(app);
+
+  // Multilingual configuration
+  // 多语言配置
+  // Asynchronous case: language files may be obtained from the server side
+  // 异步案例：语言文件可能从服务器端获取
+  await setupI18n(app);
+
+  // Configure routing
+  // 配置路由
+  setupRouter(app);
+
+  // router-guard
+  // 路由守卫
+  setupRouterGuard(router);
+
+  // Register global directive
+  // 注册全局指令
+  setupGlobDirectives(app);
+
+  // Configure global error handling
+  // 配置全局错误处理
+  setupErrorHandle(app);
+
+  // https://next.router.vuejs.org/api/#isready
+  // await router.isReady();
+
+  app.mount('#app');
+}
+
+bootstrap();
