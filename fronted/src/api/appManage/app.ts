@@ -1,6 +1,6 @@
 import {
-  AppPageResult,
   AppPageParams,
+  AppPageResultModel,
 } from './appModel';
 import { defHttp } from '/@/utils/http/axios';
 
@@ -9,4 +9,4 @@ enum Api {
 }
 
 export const getAppList = (params: AppPageParams) =>
-  defHttp.post<AppPageResult>({ url: Api.AppManageList, params });
+  defHttp.post<AppPageResultModel>({ url: Api.AppManageList, params });
